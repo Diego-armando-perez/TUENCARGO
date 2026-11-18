@@ -110,8 +110,29 @@ public class AdminController {
         if (raw == null || raw.isBlank()) {
             throw new DomainException("El " + field + " es obligatorio");
         }
+        String value = raw.trim().replace(" ", "");
+        int lastComma = value.lastIndexOf(',');
+        int lastDot = value.lastIndexOf('.');
+        if (lastComma >= 0 && lastDot >= 0) {
+            // Estan los dos separadores: el ultimo es el decimal.
+            value = lastComma > lastDot
+                    ? value.replace(".", "").replace(',', '.')   // 28.000,50
+                    : value.replace(",", "");                    // 28,000.50
+        } else if (lastComma >= 0) {
+            value = value.replace(',', '.');                     // 28000,50
+        } else if (lastDot >= 0 && value.indexOf('.') != lastDot) {
+            value = value.replace(".", "");                      // 28.000.000
+        } else if (lastDot >= 0 && value.substring(lastDot + 1).length() == 3
+                && !value.startsWith("0.")) {
+            throw new DomainException("El " + field
+                    + " es ambiguo. Escribe el valor sin separador de miles, por ejemplo 28000 o 28000,50");
+        }
         try {
-            return new BigDecimal(raw.trim().replace(".", "").replace(",", "."));
+            BigDecimal parsed = new BigDecimal(value);
+            if (parsed.signum() < 0) {
+                throw new DomainException("El " + field + " no puede ser negativo");
+            }
+            return parsed;
         } catch (NumberFormatException ex) {
             throw new DomainException("El " + field + " debe ser numérico");
         }
