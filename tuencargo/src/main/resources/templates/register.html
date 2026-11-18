@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Crear cuenta')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: nav}"></header>
+
+<main class="container narrow">
+    <div class="card">
+        <h1>Crear cuenta</h1>
+        <p class="muted">Al registrarte te asignamos tu dirección de casillero en Miami.</p>
+
+        <div class="alert alert-error" th:if="${error != null}" th:text="${error}"></div>
+
+        <form th:action="@{/register}" method="post" class="stack">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+            <label class="field">
+                <span>Nombre completo</span>
+                <input type="text" name="fullName" minlength="3" maxlength="120" required
+                       th:value="${fullName}" placeholder="Ana María Pérez">
+            </label>
+            <label class="field">
+                <span>Correo electrónico</span>
+                <input type="email" name="email" maxlength="160" required
+                       th:value="${email}" placeholder="ana@correo.com">
+            </label>
+            <label class="field">
+                <span>Contraseña (mínimo 8 caracteres)</span>
+                <input type="password" name="password" minlength="8" required autocomplete="new-password">
+            </label>
+            <label class="field">
+                <span>Confirmar contraseña</span>
+                <input type="password" name="confirmPassword" minlength="8" required autocomplete="new-password">
+            </label>
+            <button class="btn btn-primary" type="submit">Registrarme</button>
+        </form>
+
+        <p class="muted">¿Ya tienes cuenta? <a th:href="@{/login}">Inicia sesión</a>.</p>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Detalle de cotización')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: nav}"></header>
+
+<main class="container">
+    <div th:replace="~{fragments/layout :: flash}"></div>
+
+    <div class="grid grid-2">
+        <div class="card">
+            <span class="pill" th:text="${quotation.store}">Tienda</span>
+            <h1 th:text="${quotation.productName}">Producto</h1>
+            <p class="muted" th:text="${quotation.productUrl}">https://...</p>
+
+            <dl class="detail-list">
+                <div><dt>Precio en tienda</dt><dd th:text="'US$ ' + ${quotation.priceUsd}">US$ 0</dd></div>
+                <div><dt>Peso estimado</dt><dd th:text="${quotation.weightLb} + ' lb'">1 lb</dd></div>
+                <div><dt>TRM aplicada</dt>
+                    <dd th:text="'$' + ${#numbers.formatDecimal(quotation.trm, 1, 'POINT', 2, 'COMMA')} + ' COP'">0</dd></div>
+                <div><dt>Estado</dt><dd th:text="${quotation.status.label()}">Vigente</dd></div>
+                <div><dt>Vigente hasta</dt><dd th:text="${@fmt.dt(quotation.expiresAt)}">01/01/2026</dd></div>
+            </dl>
+        </div>
+
+        <div class="card">
+            <h2>Desglose del costo total</h2>
+            <table class="breakdown">
+                <tbody>
+                <tr><th>Producto</th>
+                    <td th:text="'$' + ${#numbers.formatDecimal(quotation.breakdown.productCop, 1, 'POINT', 0, 'COMMA')}">0</td></tr>
+                <tr><th>Flete internacional</th>
+                    <td th:text="'$' + ${#numbers.formatDecimal(quotation.breakdown.freightCop, 1, 'POINT', 0, 'COMMA')}">0</td></tr>
+                <tr><th>Manejo en bodega</th>
+                    <td th:text="'$' + ${#numbers.formatDecimal(quotation.breakdown.handlingCop, 1, 'POINT', 0, 'COMMA')}">0</td></tr>
+                <tr><th>Tarifa de servicio</th>
+                    <td th:text="'$' + ${#numbers.formatDecimal(quotation.breakdown.serviceFeeCop, 1, 'POINT', 0, 'COMMA')}">0</td></tr>
+                <tr><th>Impuestos de importación</th>
+                    <td th:text="'$' + ${#numbers.formatDecimal(quotation.breakdown.taxCop, 1, 'POINT', 0, 'COMMA')}">0</td></tr>
+                <tr class="total"><th>Total puesto en Colombia</th>
+                    <td th:text="'$' + ${#numbers.formatDecimal(quotation.breakdown.totalCop, 1, 'POINT', 0, 'COMMA')} + ' COP'">0</td></tr>
+                </tbody>
+            </table>
+
+            <div class="alert alert-warn" th:if="${expired}">
+                Esta cotización venció. Genera una nueva para continuar con el pago.
+            </div>
+
+            <div class="actions">
+                <a class="btn btn-ghost" th:href="@{/quotations/{id}/compare(id=${quotation.id})}">
+                    Comparar precios
+                </a>
+                <form th:action="@{/quotations/{id}/orders(id=${quotation.id})}" method="post"
+                      th:if="${!expired && quotation.status.name() == 'VIGENTE'}">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                    <button class="btn btn-primary" type="submit">Confirmar pedido</button>
+                </form>
+            </div>
+            <p class="muted">Al confirmar el pedido pasas a la pantalla de pago. El pedido queda en
+                estado "Pendiente de pago" hasta que la pasarela apruebe la transacción.</p>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Nueva cotización')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: nav}"></header>
+
+<main class="container narrow">
+    <div th:replace="~{fragments/layout :: flash}"></div>
+
+    <div class="card">
+        <h1>Cotizar un producto</h1>
+        <p class="muted">Pega el link de la publicación en la tienda de origen. Calculamos el costo
+            total puesto en Colombia con la TRM del día y la tarifa de bodega activa.</p>
+
+        <form th:action="@{/quotations}" method="post" class="stack">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+            <label class="field">
+                <span>Link del producto</span>
+                <input type="url" name="url" required maxlength="900"
+                       th:value="${url}"
+                       placeholder="https://www.amazon.com/dp/B0EXAMPLE">
+            </label>
+            <button class="btn btn-primary" type="submit">Generar cotización</button>
+        </form>
+
+        <div class="demo-box">
+            <h2>Cómo leer el resultado</h2>
+            <ul>
+                <li>Valor del producto convertido con la TRM.</li>
+                <li>Flete por libra según el peso estimado de la publicación.</li>
+                <li>Manejo en bodega, tarifa de servicio e impuestos de importación.</li>
+                <li>La cotización tiene vigencia de 24 horas.</li>
+            </ul>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

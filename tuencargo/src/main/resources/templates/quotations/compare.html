@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Comparación de precios')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: nav}"></header>
+
+<main class="container">
+    <div class="card">
+        <span class="pill">Comparación de precios</span>
+        <h1 th:text="${quotation.productName}">Producto</h1>
+        <p class="muted">Mismo producto cotizado en las tiendas soportadas, ordenado de menor a mayor
+            costo total puesto en Colombia.</p>
+
+        <div class="alert alert-warn" th:if="${!hasAlternatives}">
+            No encontramos este producto en otras tiendas. Mantenemos visible la cotización original
+            con la opción de continuar al pago.
+        </div>
+
+        <div class="grid grid-3">
+            <article class="card offer" th:each="option, stat : ${options}"
+                     th:classappend="${stat.index == 0 ? ' offer-best' : ''}">
+                <div class="offer-head">
+                    <h2 th:text="${option.offer.store}">Tienda</h2>
+                    <span class="badge badge-ok" th:if="${stat.index == 0}">Más económica</span>
+                </div>
+                <p class="muted" th:text="'US$ ' + ${option.offer.priceUsd} + ' · ' + ${option.offer.weightLb} + ' lb'">
+                    US$ 0</p>
+                <p class="price" th:text="'$' + ${#numbers.formatDecimal(option.breakdown.totalCop, 1, 'POINT', 0, 'COMMA')} + ' COP'">
+                    0</p>
+                <dl class="detail-list compact">
+                    <div><dt>Producto</dt>
+                        <dd th:text="'$' + ${#numbers.formatDecimal(option.breakdown.productCop, 1, 'POINT', 0, 'COMMA')}">0</dd></div>
+                    <div><dt>Flete</dt>
+                        <dd th:text="'$' + ${#numbers.formatDecimal(option.breakdown.freightCop, 1, 'POINT', 0, 'COMMA')}">0</dd></div>
+                    <div><dt>Impuestos</dt>
+                        <dd th:text="'$' + ${#numbers.formatDecimal(option.breakdown.taxCop, 1, 'POINT', 0, 'COMMA')}">0</dd></div>
+                </dl>
+            </article>
+        </div>
+
+        <div class="actions">
+            <a class="btn btn-ghost" th:href="@{/quotations/{id}(id=${quotation.id})}">Volver a la cotización</a>
+            <form th:action="@{/quotations/{id}/orders(id=${quotation.id})}" method="post"
+                  th:if="${quotation.status.name() == 'VIGENTE'}">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <button class="btn btn-primary" type="submit">Continuar con esta cotización</button>
+            </form>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>
