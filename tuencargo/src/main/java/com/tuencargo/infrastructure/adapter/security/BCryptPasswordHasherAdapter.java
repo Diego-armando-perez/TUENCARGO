@@ -1,22 +1,27 @@
 package com.tuencargo.infrastructure.adapter.security;
 
+import com.tuencargo.application.ports.out.PasswordHasherPort;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Component;
 
-@Component
-public class BCryptPasswordHasherAdapter {
+/**
+ * Adaptador del puerto de hashing usando BCrypt (Spring Security Crypto).
+ * Se registra como bean en AppConfig para evitar doble definición.
+ */
+public class BCryptPasswordHasherAdapter implements PasswordHasherPort {
 
-    private final PasswordEncoder passwordEncoder;
+    private final PasswordEncoder encoder;
 
-    public BCryptPasswordHasherAdapter(PasswordEncoder passwordEncoder) {
-        this.passwordEncoder = passwordEncoder;
+    public BCryptPasswordHasherAdapter(PasswordEncoder encoder) {
+        this.encoder = encoder;
     }
 
+    @Override
     public String hash(String rawPassword) {
-        return passwordEncoder.encode(rawPassword);
+        return encoder.encode(rawPassword);
     }
 
-    public boolean matches(String rawPassword, String encodedPassword) {
-        return passwordEncoder.matches(rawPassword, encodedPassword);
+    @Override
+    public boolean matches(String rawPassword, String passwordHash) {
+        return encoder.matches(rawPassword, passwordHash);
     }
 }
