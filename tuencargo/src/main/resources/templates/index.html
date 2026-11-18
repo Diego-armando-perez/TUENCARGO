@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Inicio')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: nav}"></header>
+
+<main class="container">
+    <div th:replace="~{fragments/layout :: flash}"></div>
+
+    <section th:if="${anonymous}">
+        <div class="hero">
+            <h1>Compra en el exterior y recibe en Colombia</h1>
+            <p>Cotiza desde el link de cualquier producto, compara precios entre tiendas, paga en pesos
+                y sigue tu paquete con tu casillero internacional.</p>
+            <div class="actions">
+                <a class="btn btn-primary" th:href="@{/register}">Crear mi cuenta</a>
+                <a class="btn btn-ghost" th:href="@{/login}">Ya tengo cuenta</a>
+            </div>
+        </div>
+
+        <div class="grid grid-3">
+            <article class="card">
+                <h2>1. Cotiza</h2>
+                <p class="muted">Pega el link del producto y obtén el costo total puesto en Colombia:
+                    producto, flete, impuestos y tarifa de servicio.</p>
+            </article>
+            <article class="card">
+                <h2>2. Compara y paga</h2>
+                <p class="muted">Comparamos el mismo producto en varias tiendas y pagas con PSE o
+                    tarjeta en pesos colombianos.</p>
+            </article>
+            <article class="card">
+                <h2>3. Recibe</h2>
+                <p class="muted">Usa tu dirección de casillero en Miami y sigue el estado del pedido
+                    etapa por etapa desde tu panel.</p>
+            </article>
+        </div>
+    </section>
+
+    <section th:unless="${anonymous}">
+        <div class="card">
+            <h1>Hola, <span th:text="${cu.fullName}">cliente</span></h1>
+            <p class="muted">Este es tu panel de compras internacionales.</p>
+            <div class="actions">
+                <a class="btn btn-primary" th:href="@{/quotations/new}">Cotizar un producto</a>
+                <a class="btn btn-ghost" th:href="@{/orders}">Ver mis pedidos</a>
+            </div>
+        </div>
+
+        <div class="card locker" th:if="${account.lockerAddress != null}">
+            <h2>Tu casillero internacional</h2>
+            <p class="muted">Usa esta dirección como dirección de envío en la tienda de origen.</p>
+            <p class="mono" th:text="${account.lockerAddress}">TU-XXXXXX, Miami</p>
+            <button type="button" class="btn btn-ghost btn-sm"
+                    th:attr="data-copy=${account.lockerAddress}">Copiar dirección completa</button>
+        </div>
+
+        <div class="grid grid-3">
+            <div class="stat">
+                <span class="stat-value" th:text="${#lists.size(quotations)}">0</span>
+                <span class="stat-label">Cotizaciones recientes</span>
+            </div>
+            <div class="stat">
+                <span class="stat-value" th:text="${#lists.size(orders)}">0</span>
+                <span class="stat-label">Pedidos recientes</span>
+            </div>
+            <div class="stat">
+                <span class="stat-value" th:text="${#lists.size(notifications)}">0</span>
+                <span class="stat-label">Notificaciones</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-head">
+                <h2>Últimas cotizaciones</h2>
+                <a th:href="@{/quotations/new}">Nueva</a>
+            </div>
+            <div class="table-wrap" th:if="${!#lists.isEmpty(quotations)}">
+                <table>
+                    <thead>
+                    <tr><th>Producto</th><th>Tienda</th><th>Total COP</th><th>Estado</th><th></th></tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="q : ${quotations}">
+                        <td th:text="${q.productName}">Producto</td>
+                        <td th:text="${q.store}">Tienda</td>
+                        <td th:text="'$' + ${#numbers.formatDecimal(q.breakdown.totalCop, 1, 'POINT', 0, 'COMMA')}">0</td>
+                        <td><span class="badge" th:text="${q.status.label()}">Vigente</span></td>
+                        <td><a th:href="@{/quotations/{id}(id=${q.id})}">Ver</a></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="muted" th:if="${#lists.isEmpty(quotations)}">Todavía no tienes cotizaciones.</p>
+        </div>
+
+        <div class="card">
+            <div class="card-head">
+                <h2>Últimos pedidos</h2>
+                <a th:href="@{/orders}">Ver todos</a>
+            </div>
+            <div class="table-wrap" th:if="${!#lists.isEmpty(orders)}">
+                <table>
+                    <thead>
+                    <tr><th>Pedido</th><th>Producto</th><th>Total COP</th><th>Estado</th><th></th></tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="o : ${orders}">
+                        <td th:text="${o.orderNumber}">TC-0000</td>
+                        <td th:text="${o.productName}">Producto</td>
+                        <td th:text="'$' + ${#numbers.formatDecimal(o.totalCop, 1, 'POINT', 0, 'COMMA')}">0</td>
+                        <td><span class="badge"
+                                  th:classappend="${'badge-' + #strings.toLowerCase(o.status.name())}"
+                                  th:text="${o.status.label()}">Estado</span></td>
+                        <td><a th:href="@{/orders/{id}(id=${o.id})}">Ver</a></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="muted" th:if="${#lists.isEmpty(orders)}">Todavía no tienes pedidos.</p>
+        </div>
+    </section>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<script>
+    document.querySelectorAll('[data-copy]').forEach(function (button) {
+        button.addEventListener('click', function () {
+            var value = button.getAttribute('data-copy');
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(value);
+            }
+            button.textContent = 'Dirección copiada';
+        });
+    });
+</script>
+</body>
+</html>

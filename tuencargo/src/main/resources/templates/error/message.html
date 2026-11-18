@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Resultado')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: nav}"></header>
+
+<main class="container narrow">
+    <div class="card">
+        <h1 th:text="${title}">No pudimos completar la operación</h1>
+        <p th:text="${message}">Detalle</p>
+        <a class="btn btn-primary" th:href="@{/}">Volver al panel</a>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

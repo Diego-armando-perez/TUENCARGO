@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Error')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: nav}"></header>
+
+<main class="container narrow">
+    <div class="card">
+        <h1>Algo salió mal</h1>
+        <p class="muted" th:text="${status != null ? 'Código ' + status : ''}">Error</p>
+        <p th:text="${message != null ? message : 'Revisa la dirección o vuelve al panel principal.'}">
+            Detalle</p>
+        <a class="btn btn-primary" th:href="@{/}">Volver al panel</a>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Detalle del pedido')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: nav}"></header>
+
+<main class="container">
+    <div th:replace="~{fragments/layout :: flash}"></div>
+
+    <div class="grid grid-2">
+        <div class="card">
+            <span class="pill">Pedido</span>
+            <h1 class="mono" th:text="${order.orderNumber}">TC-0000</h1>
+            <p th:text="${order.productName}">Producto</p>
+            <p class="muted" th:text="'Tienda: ' + ${order.store}">Tienda</p>
+
+            <dl class="detail-list">
+                <div><dt>Total</dt>
+                    <dd th:text="'$' + ${#numbers.formatDecimal(order.totalCop, 1, 'POINT', 0, 'COMMA')} + ' COP'">0</dd></div>
+                <div><dt>Estado actual</dt>
+                    <dd><span class="badge" th:classappend="${'badge-' + #strings.toLowerCase(order.status.name())}"
+                              th:text="${order.status.label()}">Estado</span></dd></div>
+                <div><dt>Creado</dt><dd th:text="${@fmt.dt(order.createdAt)}">01/01/2026</dd></div>
+                <div><dt>Última actualización</dt><dd th:text="${@fmt.dt(order.updatedAt)}">01/01/2026</dd></div>
+            </dl>
+
+            <div class="actions" th:if="${canCancel}">
+                <form th:action="@{/orders/{id}/cancel(id=${order.id})}" method="post">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                    <button class="btn btn-danger" type="submit">Cancelar pedido</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Pagar con medios locales</h2>
+            <p class="muted" th:if="${canPay}">Paga en pesos colombianos con PSE, tarjeta o transferencia.
+                El pedido pasa a "Comprado" cuando la pasarela aprueba el pago.</p>
+
+            <form th:action="@{/orders/{id}/pay(id=${order.id})}" method="post" class="stack" th:if="${canPay}">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <label class="field">
+                    <span>Medio de pago</span>
+                    <select name="method" required>
+                        <option th:each="m : ${methods}" th:value="${m.name()}" th:text="${m.label()}">PSE</option>
+                    </select>
+                </label>
+                <label class="field">
+                    <span>Documento o referencia de pago</span>
+                    <input type="text" name="document" minlength="6" maxlength="40" required
+                           placeholder="1020304050">
+                </label>
+                <button class="btn btn-primary" type="submit">Pagar ahora</button>
+            </form>
+
+            <div class="alert alert-warn" th:unless="${canPay}">
+                Este pedido está en estado <strong th:text="${order.status.label()}">Comprado</strong>
+                y no requiere un nuevo pago.
+            </div>
+
+            <div class="admin-hint" th:if="${isAdmin && nextStatus != null}">
+                <p class="muted">Como administrador puedes avanzar el estado logístico a
+                    <strong th:text="${nextStatus.label()}">Siguiente</strong>.</p>
+                <a class="btn btn-ghost btn-sm" th:href="@{/admin/orders}">Ir al panel de pedidos</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Historial de estados</h2>
+        <ol class="timeline">
+            <li th:each="event : ${order.events}">
+                <span class="timeline-dot"></span>
+                <div>
+                    <strong th:text="${event.status.label()}">Estado</strong>
+                    <p class="muted" th:text="${@fmt.dt(event.occurredAt)} + ' · ' + ${event.note}">Fecha</p>
+                </div>
+            </li>
+        </ol>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

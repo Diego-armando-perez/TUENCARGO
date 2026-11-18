@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Mis cotizaciones')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: nav}"></header>
+
+<main class="container">
+    <div th:replace="~{fragments/layout :: flash}"></div>
+
+    <div class="card">
+        <div class="card-head">
+            <h1>Mis cotizaciones</h1>
+            <a class="btn btn-primary btn-sm" th:href="@{/quotations/new}">Nueva cotización</a>
+        </div>
+
+        <div class="table-wrap" th:if="${!#lists.isEmpty(quotations)}">
+            <table>
+                <thead>
+                <tr>
+                    <th>Producto</th><th>Tienda</th><th>Peso (lb)</th><th>Total COP</th>
+                    <th>Estado</th><th>Creada</th><th></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="q : ${quotations}">
+                    <td th:text="${q.productName}">Producto</td>
+                    <td th:text="${q.store}">Tienda</td>
+                    <td th:text="${q.weightLb}">1.0</td>
+                    <td th:text="'$' + ${#numbers.formatDecimal(q.breakdown.totalCop, 1, 'POINT', 0, 'COMMA')}">0</td>
+                    <td><span class="badge" th:text="${q.status.label()}">Vigente</span></td>
+                    <td th:text="${@fmt.dt(q.createdAt)}">01/01/2026</td>
+                    <td><a th:href="@{/quotations/{id}(id=${q.id})}">Ver</a></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <p class="muted" th:if="${#lists.isEmpty(quotations)}">
+            Aún no tienes cotizaciones. <a th:href="@{/quotations/new}">Crea la primera</a>.
+        </p>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>
