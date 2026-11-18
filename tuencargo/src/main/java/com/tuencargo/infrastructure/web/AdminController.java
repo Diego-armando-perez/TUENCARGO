@@ -20,6 +20,9 @@ import java.util.List;
 @RequestMapping("/admin")
 public class AdminController {
 
+    private static final int MAX_RATE_NAME_LENGTH = 80;
+    private static final int MAX_NOTE_LENGTH = 300;
+
     private final WarehouseRateUseCase rates;
     private final OrderUseCase orders;
 
@@ -51,8 +54,14 @@ public class AdminController {
                              @RequestParam(required = false) String taxPercent,
                              Model model,
                              RedirectAttributes flash) {
+        String cleanName = name == null ? null : name.trim();
+        if (cleanName != null && cleanName.length() > MAX_RATE_NAME_LENGTH) {
+            flash.addFlashAttribute("error",
+                    "El nombre de la tarifa no puede superar " + MAX_RATE_NAME_LENGTH + " caracteres");
+            return "redirect:/admin/rates";
+        }
         try {
-            rates.create(name, decimal(pricePerLb, "precio por libra"),
+            rates.create(cleanName, decimal(pricePerLb, "precio por libra"),
                     decimal(handlingFee, "tarifa de manejo"),
                     decimal(serviceFeePercent, "porcentaje de servicio"),
                     decimal(taxPercent, "porcentaje de impuestos"));
@@ -96,8 +105,14 @@ public class AdminController {
     public String advance(@PathVariable Long id,
                           @RequestParam(required = false) String note,
                           RedirectAttributes flash) {
+        String cleanNote = note == null ? null : note.trim();
+        if (cleanNote != null && cleanNote.length() > MAX_NOTE_LENGTH) {
+            flash.addFlashAttribute("error",
+                    "La nota no puede superar " + MAX_NOTE_LENGTH + " caracteres");
+            return "redirect:/admin/orders";
+        }
         try {
-            Order updated = orders.advanceLogisticStatus(id, note);
+            Order updated = orders.advanceLogisticStatus(id, cleanNote);
             flash.addFlashAttribute("ok", "Pedido " + updated.orderNumber() + " ahora está en '"
                     + updated.status().label() + "'");
         } catch (DomainException ex) {
@@ -110,8 +125,29 @@ public class AdminController {
         if (raw == null || raw.isBlank()) {
             throw new DomainException("El " + field + " es obligatorio");
         }
+        String value = raw.trim().replace(" ", "");
+        int lastComma = value.lastIndexOf(',');
+        int lastDot = value.lastIndexOf('.');
+        if (lastComma >= 0 && lastDot >= 0) {
+            // Estan los dos separadores: el ultimo es el decimal.
+            value = lastComma > lastDot
+                    ? value.replace(".", "").replace(',', '.')   // 28.000,50
+                    : value.replace(",", "");                    // 28,000.50
+        } else if (lastComma >= 0) {
+            value = value.replace(',', '.');                     // 28000,50
+        } else if (lastDot >= 0 && value.indexOf('.') != lastDot) {
+            value = value.replace(".", "");                      // 28.000.000
+        } else if (lastDot >= 0 && value.substring(lastDot + 1).length() == 3
+                && !value.startsWith("0.")) {
+            throw new DomainException("El " + field
+                    + " es ambiguo. Escribe el valor sin separador de miles, por ejemplo 28000 o 28000,50");
+        }
         try {
-            return new BigDecimal(raw.trim().replace(".", "").replace(",", "."));
+            BigDecimal parsed = new BigDecimal(value);
+            if (parsed.signum() < 0) {
+                throw new DomainException("El " + field + " no puede ser negativo");
+            }
+            return parsed;
         } catch (NumberFormatException ex) {
             throw new DomainException("El " + field + " debe ser numérico");
         }
