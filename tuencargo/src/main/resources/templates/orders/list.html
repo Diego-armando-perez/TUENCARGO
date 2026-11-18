@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Mis pedidos')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: nav}"></header>
+
+<main class="container">
+    <div th:replace="~{fragments/layout :: flash}"></div>
+
+    <div class="card">
+        <div class="card-head">
+            <h1>Mis pedidos</h1>
+            <a class="btn btn-primary btn-sm" th:href="@{/quotations/new}">Cotizar y comprar</a>
+        </div>
+
+        <div class="table-wrap" th:if="${!#lists.isEmpty(orders)}">
+            <table>
+                <thead>
+                <tr><th>Pedido</th><th>Producto</th><th>Tienda</th><th>Total COP</th>
+                    <th>Estado</th><th>Creado</th><th></th></tr>
+                </thead>
+                <tbody>
+                <tr th:each="o : ${orders}">
+                    <td class="mono" th:text="${o.orderNumber}">TC-0000</td>
+                    <td th:text="${o.productName}">Producto</td>
+                    <td th:text="${o.store}">Tienda</td>
+                    <td th:text="'$' + ${#numbers.formatDecimal(o.totalCop, 1, 'POINT', 0, 'COMMA')}">0</td>
+                    <td><span class="badge"
+                              th:classappend="${'badge-' + #strings.toLowerCase(o.status.name())}"
+                              th:text="${o.status.label()}">Estado</span></td>
+                    <td th:text="${@fmt.dt(o.createdAt)}">01/01/2026</td>
+                    <td><a th:href="@{/orders/{id}(id=${o.id})}">Ver</a></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <p class="muted" th:if="${#lists.isEmpty(orders)}">
+            Aún no tienes pedidos. <a th:href="@{/quotations/new}">Cotiza un producto</a> para empezar.
+        </p>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Buzón de notificaciones')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: nav}"></header>
+
+<main class="container">
+    <div th:replace="~{fragments/layout :: flash}"></div>
+
+    <div class="card">
+        <h1>Buzón de notificaciones</h1>
+        <p class="muted">Cada correo enviado por el sistema queda registrado aquí para tu consulta.</p>
+
+        <div class="stack" th:if="${!#lists.isEmpty(notifications)}">
+            <article class="notification" th:each="n : ${notifications}">
+                <div class="card-head">
+                    <strong th:text="${n.subject}">Asunto</strong>
+                    <span class="pill" th:text="${n.category}">PEDIDO</span>
+                </div>
+                <p th:text="${n.body}">Cuerpo</p>
+                <p class="muted" th:text="'Para ' + ${n.recipientEmail} + ' · ' + ${@fmt.dt(n.createdAt)}">fecha</p>
+            </article>
+        </div>
+
+        <p class="muted" th:if="${#lists.isEmpty(notifications)}">Todavía no tienes notificaciones.</p>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>
