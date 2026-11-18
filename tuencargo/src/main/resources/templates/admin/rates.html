@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Tarifas de bodega')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: nav}"></header>
+
+<main class="container">
+    <div th:replace="~{fragments/layout :: flash}"></div>
+
+    <div class="grid grid-2">
+        <div class="card">
+            <h1>Tarifas de bodega</h1>
+            <p class="muted">La tarifa activa alimenta todas las cotizaciones nuevas. Al crear una
+                tarifa, la anterior se desactiva automáticamente.</p>
+
+            <div class="table-wrap" th:if="${!#lists.isEmpty(rates)}">
+                <table>
+                    <thead>
+                    <tr><th>Nombre</th><th>COP/lb</th><th>Manejo</th><th>Servicio</th><th>IVA/Imp.</th>
+                        <th>Estado</th><th></th></tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="r : ${rates}">
+                        <td th:text="${r.name}">Tarifa</td>
+                        <td th:text="${#numbers.formatDecimal(r.pricePerLbCop, 1, 'POINT', 0, 'COMMA')}">0</td>
+                        <td th:text="${#numbers.formatDecimal(r.handlingFeeCop, 1, 'POINT', 0, 'COMMA')}">0</td>
+                        <td th:text="${r.serviceFeePercent} + ' %'">10 %</td>
+                        <td th:text="${r.taxPercent} + ' %'">19 %</td>
+                        <td>
+                            <span class="badge badge-ok" th:if="${r.active}">Activa</span>
+                            <span class="badge" th:unless="${r.active}">Inactiva</span>
+                        </td>
+                        <td class="nowrap">
+                            <form th:action="@{/admin/rates/{id}/toggle(id=${r.id})}" method="post" class="inline">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                <button class="btn btn-ghost btn-sm" type="submit" th:text="${r.active ? 'Desactivar' : 'Activar'}">
+                                    Activar
+                                </button>
+                            </form>
+                            <form th:action="@{/admin/rates/{id}/delete(id=${r.id})}" method="post" class="inline"
+                                  th:unless="${r.active}">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                <button class="btn btn-danger btn-sm" type="submit">Eliminar</button>
+                            </form>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Nueva tarifa</h2>
+            <form th:action="@{/admin/rates}" method="post" class="stack">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <label class="field">
+                    <span>Nombre</span>
+                    <input type="text" name="name" required maxlength="80" placeholder="Tarifa Express Miami">
+                </label>
+                <label class="field">
+                    <span>Precio por libra (COP)</span>
+                    <input type="text" name="pricePerLb" required inputmode="decimal" placeholder="28000">
+                </label>
+                <label class="field">
+                    <span>Tarifa de manejo (COP)</span>
+                    <input type="text" name="handlingFee" required inputmode="decimal" placeholder="15000">
+                </label>
+                <label class="field">
+                    <span>% tarifa de servicio</span>
+                    <input type="text" name="serviceFeePercent" required inputmode="decimal" placeholder="10">
+                </label>
+                <label class="field">
+                    <span>% impuestos de importación</span>
+                    <input type="text" name="taxPercent" required inputmode="decimal" placeholder="19">
+                </label>
+                <button class="btn btn-primary" type="submit">Crear y activar tarifa</button>
+            </form>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>
